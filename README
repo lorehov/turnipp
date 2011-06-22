@@ -1,0 +1,10 @@
+Script for checking PostgreSQL 9 streaming replication lag.
+Contains Checker class, which perform all checking routine.
+If used as script, provides command line interface (use turnipp.py -h).
+
+Requires psycopg2 (easy_install psycopg2)
+
+P.S.: Main purpose for creating of this script - is to obtain Zabbix adapter
+for checking postgresql 9.0 replication.
+
+lev.orekhov@gmail.com
