@@ -48,8 +48,8 @@ class Checker(object):
         @param m: connection string to master ("host=foo user=bar")
         @param s: connection string to slave ("host=foo user=bar")
         '''
-        self.master = psycopg2.connect(m)
-        self.slave = psycopg2.connect(s)
+        self.master = m
+        self.slave = s
     
     def check(self):
         '''
@@ -57,17 +57,19 @@ class Checker(object):
         If all is OK, lag in Kb returns, if all is VERY BAD, -1 returns.
         '''
         try:
-            m = self.master.cursor()
+            m_con = psycopg2.connect(self.master)
+            s_con = psycopg2.connect(self.slave)
+            m = m_con.cursor()
             m.execute('SELECT pg_current_xlog_location()')
             m_current = self.__in_bytes(m.fetchone()[0])
-            self.master.commit()
-            self.master.close()
+            m_con.commit()
+            m_con.close()
             
-            s = self.slave.cursor()
+            s = s_con.cursor()
             s.execute('SELECT pg_last_xlog_replay_location()')
             s_current = self.__in_bytes(s.fetchone()[0])
-            self.slave.commit()
-            self.slave.close()
+            s_con.commit()
+            s_con.close()
         except:
             return -1
         return (m_current - s_current) / 1024
