@@ -43,13 +43,15 @@ class Checker(object):
     @ivar master: connection object to master server
     @ivar slave: connection object to slave server  
     '''
-    def __init__(self, m, s):
+    def __init__(self, m, s, v=False):
         '''
         @param m: connection string to master ("host=foo user=bar")
         @param s: connection string to slave ("host=foo user=bar")
+        @param v: raise an Exception (True), or return -1 (False)
         '''
         self.master = m
         self.slave = s
+        self.verbose = v
     
     def check(self):
         '''
@@ -70,8 +72,11 @@ class Checker(object):
             s_current = self.__in_bytes(s.fetchone()[0])
             s_con.commit()
             s_con.close()
-        except:
-            return -1
+        except Exception as ex:
+            if self.verbose:
+                raise ex
+            else:
+                return -1
         return (m_current - s_current) / 1024
     
     def __in_bytes(self, xlog):
@@ -84,8 +89,9 @@ if __name__ == '__main__':
                         help='Master server DSN (e.g. "host=foo user=bar")')
     parser.add_argument('-s', '--slave', metavar='DSN',
                         help='Slave server DSN (e.g. "host=foo user=bar")')
-    
+    parser.add_argument('-v', '--verbose', metavar='BOOL',
+                        help='Do we need error explanation?')
     args = parser.parse_args()
-    checker = Checker(args.master, args.slave)
+    checker = Checker(args.master, args.slave, args.verbose)
     print checker.check()
 
